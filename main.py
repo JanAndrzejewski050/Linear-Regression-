@@ -7,16 +7,16 @@ data = pd.read_csv('data.csv')
 def plot_3d_regression(data, factorsList):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(data['mouse_size'], data['tail_lenght'], data['mouse_weight'], color='blue')
+    ax.scatter(data['mouse_size'], data['tail_length'], data['mouse_weight'], color='blue')
 
     x_surf, y_surf = np.meshgrid(np.linspace(data['mouse_size'].min(), data['mouse_size'].max(), 100),
-                                 np.linspace(data['tail_lenght'].min(), data['tail_lenght'].max(), 100))
+                                 np.linspace(data['tail_length'].min(), data['tail_length'].max(), 100))
     z_surf = factorsList[0] + factorsList[1] * x_surf + factorsList[2] * y_surf
 
     ax.plot_surface(x_surf, y_surf, z_surf, color='red', alpha=0.5)
 
     ax.set_xlabel('Mouse Size')
-    ax.set_ylabel('Tail Length')
+    ax.set_ylabel('Tail Lenght')
     ax.set_zlabel('Mouse Weight')
 
     plt.show()
@@ -49,8 +49,8 @@ def gradient_descent(factorsList, L, data):
             xsList.append(data.iloc[i][j])
 
         for j in range(m-1):    #calc slope using derivative for not free variables
-            slopeList[j] += -2 * xsList[j] * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))   
-        slopeList[m-1] += -2 * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))
+            slopeList[j] += -2 / n * xsList[j] * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))   
+        slopeList[m-1] += -2 / n * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))
 
     for i in range(m):
         factorsList[i] = factorsList[i] - L * slopeList[i]
@@ -69,7 +69,7 @@ def linear_regression(L, data):
     plot_3d_regression(data, factorsList)
 
 
-learning_rate = 0.0001; iterations = 2000
+learning_rate = 0.001; iterations = 1000
 
 linear_regression(learning_rate, data)
 
