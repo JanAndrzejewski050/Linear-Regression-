@@ -1,19 +1,25 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 data = pd.read_csv('data.csv')
 
-def find_m_and_b(m, b, L, data):
-    m_derivative_in_m = 0
-    b_derivative_in_b = 0
-    for i in range(len(data)):
-        xi = data.iloc[i].mouse_size
-        yi = data.iloc[i].mouse_weight
-        m_derivative_in_m += -2 * xi * (yi - m*xi - b)
-        b_derivative_in_b += -2 * (yi - m*xi - b)
-    m = m - m_derivative_in_m*L
-    b = b - b_derivative_in_b*L
-    return m, b
+def plot_3d_regression(data, factorsList):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(data['mouse_size'], data['tail_lenght'], data['mouse_weight'], color='blue')
+
+    x_surf, y_surf = np.meshgrid(np.linspace(data['mouse_size'].min(), data['mouse_size'].max(), 100),
+                                 np.linspace(data['tail_lenght'].min(), data['tail_lenght'].max(), 100))
+    z_surf = factorsList[0] + factorsList[1] * x_surf + factorsList[2] * y_surf
+
+    ax.plot_surface(x_surf, y_surf, z_surf, color='red', alpha=0.5)
+
+    ax.set_xlabel('Mouse Size')
+    ax.set_ylabel('Tail Length')
+    ax.set_zlabel('Mouse Weight')
+
+    plt.show()
 
 def calc_mean(data):
     mean = 0
@@ -24,10 +30,7 @@ def calc_mean(data):
     return mean/n
 
 def calc_r_squared(m, b, data):
-    ss_fit = 0
-    ss_mean = 0
-    mean = calc_mean(data)
-    n = len(data)
+    ss_fit = 0; ss_mean = 0; mean = calc_mean(data); n = len(data)
     for i in range(n):
         xi = data.iloc[i].mouse_size
         yi = data.iloc[i].mouse_weight
@@ -37,16 +40,36 @@ def calc_r_squared(m, b, data):
     return r_squared
 
 
-m = 0; b = 0; learning_rate = 0.0001; iterations = 1000
+def gradient_descent(factorsList, L, data):
+    n = len(data); m = len(factorsList); slopeList = [0 for i in range(m)]; xsList = []     # xsList = variables list
 
-for i in range(iterations):
-    # if i%(iterations//6) == 0: 
-    #     print(f"Loading: {round(i/iterations*100, 2)}%")
-    m, b = find_m_and_b(m, b, learning_rate, data)
+    for i in range(n):
+        y_i = data.iloc[i].mouse_weight
+        for j in range(m):      # getting all variables
+            xsList.append(data.iloc[i][j])
 
-print(f"m: {m}, b: {b}")
-print(f"R_squared = {calc_r_squared(m, b, data)}")
+        for j in range(m-1):    #calc slope using derivative for not free variables
+            slopeList[j] += -2 * xsList[j] * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))   
+        slopeList[m-1] += -2 * (y_i - (sum(factorsList[k] * xsList[k] for k in range(m))))
 
-plt.plot(list(range(10, 38)), [m*x + b for x in range(10, 38)], color = "red")
-plt.scatter(data['mouse_size'], data['mouse_weight'])
-plt.show()
+    for i in range(m):
+        factorsList[i] = factorsList[i] - L * slopeList[i]
+
+    return factorsList
+
+
+def linear_regression(L, data):
+    factorsList = [0 for i in range(len(data.iloc[0]))]
+    for i in range(iterations):
+        factorsList = gradient_descent(factorsList, learning_rate, data)
+
+    print(factorsList)
+    #print(f"R_squared = {calc_r_squared(m, b, data)}")
+
+    plot_3d_regression(data, factorsList)
+
+
+learning_rate = 0.0001; iterations = 2000
+
+linear_regression(learning_rate, data)
+
