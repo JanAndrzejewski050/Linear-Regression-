@@ -69,24 +69,4 @@ class Data_Scale(Data_Prep):
 
 
 
-file_name = "data.csv"  # Podaj swoją ścieżkę do pliku CSV
-scaling_type = "standard"  # Możesz użyć "minmax" lub "standard"
 
-data_scale = Data_Scale(file_name, scaling_type)
-
-# Czyszczenie danych
-data_scale.clean_rows()
-
-# Dzielimy dane na treningowe i testowe
-data_scale.split_data()
-
-# Dopasowujemy skaler do danych treningowych
-data_scale.fit_scaler()
-
-# Skalujemy dane i otrzymujemy wyniki
-x_train_scaled, y_train, x_test_scaled, y_test = data_scale.transform_data()
-
-print("Dane treningowe po skalowaniu:")
-print(x_train_scaled)
-print("Dane testowe po skalowaniu:")
-print(x_test_scaled)
