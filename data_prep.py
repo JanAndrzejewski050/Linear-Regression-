@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from metrics import Metrics
+from scalers import MinMaxScaler, StandardScaler
 
 
 class Data_Prep:
@@ -10,7 +11,6 @@ class Data_Prep:
         self.m = len(self.data.columns)
         self.test_size = test_size
         self.random_state = random_state
-        self.train_set, self.test_set = self.split()
 
     def clean_rows(self):
         # Filtering rows that have less then m elements
@@ -30,6 +30,13 @@ class Data_Prep:
         test_set = self.data.iloc[test_indices].reset_index(drop=True)
 
         return train_set, test_set
+    
+    def split_data(self):
+        self.train_set, self.test_set = self.split()
+        self.x_train = self.train_set.iloc[:, :-1]
+        self.y_train = self.train_set.iloc[:, -1]
+        self.x_test = self.test_set.iloc[:, :-1]
+        self.y_test = self.test_set.iloc[:, -1]
 
     def show_data(self):
         print(self.data)
@@ -38,23 +45,48 @@ class Data_Prep:
         print("Train Set:"); print(self.train_set); print("Test Set:"); print(self.test_set)
 
 
-class Scalers(Metrics):
-    @staticmethod
-    def standar_scaler():
-        pass
 
-    @staticmethod
-    def minmax_normalization():
-        pass
+class Data_Scale(Data_Prep):
+    def __init__(self, file_name, scaling_type="minmax", test_size=0.2, random_state=None):
+        super().__init__(file_name, test_size, random_state)
+        self.scaling_type = scaling_type
+
+        if scaling_type == "minmax":
+            self.scaler = MinMaxScaler()
+        elif scaling_type == "standard":
+            self.scaler = StandardScaler()
+        else:
+            raise ValueError("Unsupported scaling type")
+    
+    def fit_scaler(self):
+        self.scaler.fit(self.x_train)
+
+    def transform_data(self):
+        x_train_scaled = self.scaler.transform(self.x_train)
+        x_test_scaled = self.scaler.transform(self.x_test)
+        return x_train_scaled, self.y_train, x_test_scaled, self.y_test
 
 
-# class Data_Scale(Data_Prep):
-#     def __init__(self, file_name, test_size=0.2, random_state=None):
-#         super().__init__(file_name, test_size, random_state)
 
 
+file_name = "data.csv"  # Podaj swoją ścieżkę do pliku CSV
+scaling_type = "standard"  # Możesz użyć "minmax" lub "standard"
 
-d = Data_Prep('data.csv')
-d.clean_rows()
-d.show_data()
-d.show_train_test_sets()
+data_scale = Data_Scale(file_name, scaling_type)
+
+# Czyszczenie danych
+data_scale.clean_rows()
+
+# Dzielimy dane na treningowe i testowe
+data_scale.split_data()
+
+# Dopasowujemy skaler do danych treningowych
+data_scale.fit_scaler()
+
+# Skalujemy dane i otrzymujemy wyniki
+x_train_scaled, y_train, x_test_scaled, y_test = data_scale.transform_data()
+
+print("Dane treningowe po skalowaniu:")
+print(x_train_scaled)
+print("Dane testowe po skalowaniu:")
+print(x_test_scaled)

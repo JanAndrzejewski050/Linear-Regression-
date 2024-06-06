@@ -7,6 +7,24 @@ class Metrics:
         return np.mean(data.iloc[:, -1])
 
     @staticmethod
+    def mean(data):
+        return np.mean(data)
+
+    @staticmethod
+    def variance(data):
+        data = np.array(data, dtype=float)  # Konwersja danych na typ float
+        var = 0
+        n = len(data)
+        mean_value = Metrics.mean(data)
+        for v in data:
+            var += (v - mean_value) ** 2
+        return var / n
+
+    @staticmethod
+    def standard_deviation(data):
+        return np.sqrt(Metrics.variance(data))
+
+    @staticmethod
     def mean_squared_error(data):
         ss_mean = 0; n = len(data)
         for i in range(len(data)):
@@ -28,6 +46,3 @@ class Metrics:
     @staticmethod
     def r_squared(data, factors_list):
         return (Metrics.mean_squared_error(data) - Metrics.fit_squared_error(data, factors_list)) / Metrics.mean_squared_error(data)
-
-data = pd.read_csv('data.csv')
-print(Metrics.mean_dependent_y(data))
